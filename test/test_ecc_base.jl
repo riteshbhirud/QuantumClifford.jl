@@ -238,9 +238,39 @@ b_gb₃ = 1 + x^6
 c_gb₃ = GeneralizedBicycleCode(a_gb₃, a_gb₃, l)
 p₃ = one(R) + x
 
+# Trivariate Tricycle Codes from [jacob2025singleshotdecodingfaulttolerantgates](@cite)
+
+# [[36, 3, 3]] from Table III
+F₂ = GF(2)
+R, (x, y, z) = polynomial_ring(F₂, [:x, :y, :z])
+ℓ₁, m₁, p₁ = 3, 2, 2
+A₁ = 1 + x*y*z
+B₁ = 1 + x^2*z
+C₁ = 1 + x
+
+# [[48, 3, 4]] from Table III
+ℓ₂, m₂, p₂ = 4, 2, 2
+A₂ = 1 + x
+B₂ = 1 + x*z
+C₂ = 1 + x*y
+
+# [[54, 3, 4]] from Table III
+ℓ₃, m₃, p₃ = 3, 3, 2
+A₃ = 1 + y*z
+B₃ = 1 + x*z
+C₃ = 1 + x*y*z
+
+# [[108, 6, 2]] from Table IV
+ℓ₄, m₄, p₄ = 4, 3, 3
+A₄ = (1 + x^2)*(1 + x*z)
+B₄ = 1 + x^2*y^2
+C₄ = 1 + x^2*y^2*z^2
+
 # Add some codes that require Oscar, hence do not work on Windows
 
 test_twobga_codes = []
+test_generalized_toric_codes = []
+test_homological_product_codes = []
 
 # La-cross code polynomial
 F = GF(2)
@@ -249,8 +279,16 @@ h₂ = 1 + x + x^2
 h₃ = 1 + x + x^3
 h₄ = 1 + x + x^4
 
+# Double Homological product codes
+δ₁ = [1 1 0;
+      0 1 1]
+δ₂ = [1 1 0;
+      0 1 1;
+      1 0 1]
+
 @static if !Sys.iswindows() && Sys.ARCH == :x86_64 && VERSION >= v"1.11"
-  import Oscar: free_group, cyclic_group, direct_product, small_group_identification, describe, order, gens, quo
+  import Oscar: free_group, cyclic_group, direct_product, small_group_identification, describe, order, gens, quo,
+  polynomial_ring, matrix, GF, transpose, laurent_polynomial_ring
   function load_oscar_codes()
     #@info "Add group theoretic codes requiring Oscar"
     # [[72, 8, 9]] 2BGA code taken from Table I Block 1 of [lin2024quantum](@cite)
@@ -360,6 +398,78 @@ h₄ = 1 + x + x^4
     nonabel4 = twobga_from_fp_group(a, b, GA)
 
     append!(test_twobga_codes, [t1b1, t1b3, tb21, tb22, dprod1, dprod2, nonabel1, nonabel2, nonabel3, nonabel4])
+
+    # Homological Product Codes
+    # [[117, 9, 4]] from [xu2024fastparallelizablelogicalcomputation](@cite)
+    R, x = polynomial_ring(GF(2), "x")
+    l = 3
+    H = matrix(R, 2, 3, [x^2 x^2 x^2;
+                         x   x^2  0])
+    hpc₁ = HomologicalProductCode([H,transpose(H)], l)
+    # [[225, 9, 6]] from [xu2024fastparallelizablelogicalcomputation](@cite)
+    R, x = polynomial_ring(GF(2), "x")
+    l = 3
+    H = matrix(R, 3, 4, [x^2 x^2 x^2   0;
+                         x^2   0 x^2  x^2;
+                         x^2 x^2   x  x^2])
+    hpc₂ = HomologicalProductCode([H,transpose(H)], l)
+    # 3D Homological product code from [Quintavalle_2021](@cite)
+    μ = 2; wc = 3; wr = 4
+    c = GallagerLDPC(μ, wc, wr)
+    H = matrix(GF(2), parity_matrix(c))
+    hpc₃ = HomologicalProductCode([H,transpose(H)])
+    # 3D Homological product code from [Quintavalle_2021](@cite)
+    δ = matrix(GF(2), parity_matrix(RepCode(3)))
+    hpc₄ = HomologicalProductCode([δ,δ,δ])
+    @test iszero(mod.(metacheck_matrix_x(hpc₄)*parity_matrix_x(hpc₄), 2))
+
+    append!(test_homological_product_codes, [hpc₁, hpc₂, hpc₃, hpc₄])
+
+    # Generalized Toric Codes from [liang2025generalizedtoriccodestwisted](@cite)
+    # [[12, 4, 2]] from Table I of [liang2025generalizedtoriccodestwisted](@cite)
+    R, (x,y) = laurent_polynomial_ring(GF(2), [:x, :y])
+    f = 1 + x + x*y
+    g = 1 + y + x*y
+    α1 = (0, 3)
+    α2 = (2, 1)
+    gtc₁ = GeneralizedToricCode(f, g, α1, α2)
+
+    # [[14, 6, 2]] from Table I of [liang2025generalizedtoriccodestwisted](@cite)
+    f = 1 + x + y
+    g = 1 + y + x
+    α1 = (0, 7)
+    α2 = (1, 2)
+    gtc₂ = GeneralizedToricCode(f, g, α1, α2)
+
+    # [[96, 4, 12]] from Table I of [liang2025generalizedtoriccodestwisted](@cite)
+    f = 1 + x + x^-2*y
+    g = 1 + y + x*y^-2
+    α1 = (0, 12)
+    α2 = (4, 2)
+    gtc₃ = GeneralizedToricCode(f, g, α1, α2)
+
+    # [[98, 6, 12]] from Table I of [liang2025generalizedtoriccodestwisted](@cite)
+    f = 1 + x + x^-1*y^2
+    g = 1 + y + x^-2*y^-1
+    α1 = (0,  7)
+    α2 = (7, 0)
+    gtc₄ = GeneralizedToricCode(f, g, α1, α2)
+
+    # [[112, 6, 12]] from Table II of [liang2025generalizedtoriccodestwisted](@cite)
+    f = 1 + x + x^-1*y^2
+    g = 1 + y + x^-2*y^-1
+    α1 =(0, 7)
+    α2 =(8, 2)
+    gtc₅ = GeneralizedToricCode(f, g, α1, α2)
+
+    # [[114, 4, 14]] from Table II of [liang2025generalizedtoriccodestwisted](@cite)
+    f = 1 + x + x^-3*y
+    g = 1 + y + x^-5
+    α1 = (0,  3)
+    α2 = (19, 1)
+    gtc₆ = GeneralizedToricCode(f, g, α1, α2)
+
+    append!(test_generalized_toric_codes, [gtc₁, gtc₂, gtc₃, gtc₄, gtc₅, gtc₆])
   end
   load_oscar_codes()
 end
@@ -399,7 +509,9 @@ const code_instance_args = Dict(
     :GeneralizedCirculantBivariateBicycle => [(9,6,A1,B1),(15,3,A2,B2),(6,6, A1,B1),(14,7,A2,B2),(15,5,A3,B3)],
     :GeneralizedHyperGraphProductCode => [(A_ghp1, b_ghp1), (A_ghp2, b_ghp2)],
     :GeneralizedBicycleCode => [(5,a_gb₁,b_gb₁), (9,a_gb₂,b_gb₂), (10,a_gb₃,b_gb₃)],
-    :ExtendedGeneralizedBicycleCode => [(c_gb₁,2,p₁), (c_gb₂,3,p₂), (c_gb₃,4,p₃)]
+    :ExtendedGeneralizedBicycleCode => [(c_gb₁,2,p₁), (c_gb₂,3,p₂), (c_gb₃,4,p₃)],
+    :DoubleHomologicalProductCode => [(δ₁), (δ₂)],
+    :TrivariateTricycleCode => [(ℓ₁, m₁, p₁, A₁, B₁, C₁), (ℓ₂, m₂, p₂, A₂, B₂, C₂), (ℓ₃, m₃, p₃, A₃, B₃, C₃), (ℓ₄, m₄, p₄, A₄, B₄, C₄)]
 )
 
 function all_testablable_code_instances(;maxn=nothing)

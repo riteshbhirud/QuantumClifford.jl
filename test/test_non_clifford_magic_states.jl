@@ -1,6 +1,5 @@
 @testitem "Non-Clifford Magic States" tags=[:non_clifford] begin
     using QuantumClifford
-    using Statistics
     using Random
 
     @testset "Sparsification Lemma" begin
@@ -51,7 +50,7 @@
         @test ccz_decomp.stabilizer_extent ≈ expected_xi_CCZ rtol=0.01
     end
 
-    @testset "Norm Estimation" begin
+    @testset "Norm Estimation Tests" begin
         states = [S"X", S"Z", S"Y"]
         coeffs = [ComplexF64(0.5), ComplexF64(0.3), ComplexF64(0.24)]
         sparse = sparsify_stabilizer_decomposition(coeffs, states, 0.1)
@@ -62,11 +61,7 @@
             push!(estimates, est.expected_norm)
         end
         
-        mean_est = Statistics.mean(estimates)
-        std_est = Statistics.std(estimates)
-        
-        @test mean_est > 0
-        @test std_est >= 0
         @test all(e -> e > 0, estimates)
+        @test length(estimates) == 3
     end
 end

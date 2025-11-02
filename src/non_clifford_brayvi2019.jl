@@ -1213,7 +1213,6 @@ end
 #tests
 using Test
 using QuantumClifford
-using Statistics
 
 @testset "Basic Integration Tests" begin
     @test isdefined(Main, :SparsifiedState)

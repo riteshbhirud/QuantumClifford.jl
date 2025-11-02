@@ -1,5 +1,6 @@
 @testitem "Non-Clifford Sampling" tags=[:non_clifford] begin
     using QuantumClifford
+    import QuantumClifford: AbstractOperation
 
     @testset "Measurement Sampling" begin
         state1 = Stabilizer([P"XX"])

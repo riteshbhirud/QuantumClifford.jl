@@ -1,5 +1,6 @@
 @testitem "Non-Clifford Circuit Simulation" tags=[:non_clifford] begin
     using QuantumClifford
+    import QuantumClifford: AbstractOperation
 
     @testset "Pure Clifford Circuit" begin
         circuit_clifford = [sHadamard(1), sCNOT(1,2), sZ(1)]

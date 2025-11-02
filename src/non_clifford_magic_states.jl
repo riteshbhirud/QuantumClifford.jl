@@ -314,7 +314,7 @@ end
 """
     decompose_CCZ_gate(qubits::Vector{Int})
 
-Get optimal CCZ gate decomposition with ξ(CCZ) = 16/9.
+Get optimal CCZ gate decomposition with ξ(CCZ) = 16/9
 """
 function decompose_CCZ_gate(qubits::Vector{Int})
     magic_decomp = decompose_CCZ_magic_state()

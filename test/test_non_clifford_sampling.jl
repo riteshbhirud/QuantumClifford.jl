@@ -2,14 +2,27 @@
     using QuantumClifford
     import QuantumClifford: AbstractOperation
 
-    @testset "Measurement Sampling" begin
-        state1 = Stabilizer([P"XX"])
-        state2 = Stabilizer([P"ZZ"])
+    @testset "Measurement Sampling Tests" begin
+        state1 = S"ZI IZ"
+        state2 = S"XI IX"
+        state3_temp = MixedDestabilizer(S"ZI IZ")
+        apply!(state3_temp, sX(2))
+        state3 = Stabilizer(stabilizerview(state3_temp))
+        state4_temp = MixedDestabilizer(S"ZI IZ")
+        apply!(state4_temp, sHadamard(1))
+        state4 = Stabilizer(stabilizerview(state4_temp))
         
-        states = [state1, state2]
-        coeffs = [ComplexF64(0.7), ComplexF64(0.3)]
+        states = [state1, state2, state3, state4]
         
-        result = SimulationResult(states, coeffs, 2, 0.1, 1.0)
+        coeffs = [ComplexF64(0.5), ComplexF64(0.3), ComplexF64(0.2), ComplexF64(0.1)]
+        
+        for state in states
+            @test size(state, 1) == 2
+        end
+        
+        sparse = sparsify_stabilizer_decomposition(coeffs, states, 0.2)
+        
+        result = SimulationResult(sparse.states, sparse.coefficients, sparse.k, 0.2, 1.0)
         
         n_samples = 100
         outcomes = sample_measurement_outcomes(result, n_samples, verbose=false)
@@ -17,6 +30,9 @@
         @test length(outcomes) == n_samples
         @test all(o -> o.n_qubits == 2, outcomes)
         @test all(o -> all(v -> v ∈ [0,1], o.values), outcomes)
+        
+        unique_outcomes = length(unique(outcomes))
+        @test unique_outcomes > 0
     end
 
     @testset "Computational Correctness - Single Qubit" begin
